@@ -1,5 +1,5 @@
 import { ShortnerService } from './../shared/shortner.service';
-import { NgModule, Component, Injectable } from '@angular/core';
+import { NgModule, Component, Injectable, Input } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http'
 
 import { MatSliderModule } from '@angular/material/slider';
@@ -21,10 +21,19 @@ import { HttpClient, HttpHeaders } from '@angular/common/http'
 })
 export class ShorterComponent {
 
+
+
   constructor(private shortner: ShortnerService) {}
 
-  short() {
-    this.shortner.shorten('http://localhost/BookLoan.Catalog.API/api/Book/List');
+  async short(uriToShort:string|null):Promise<string|null> {
+    console.log("[SHORT]",uriToShort);
+    if(uriToShort !==null){
+      await this.shortner.shorten(uriToShort);
+      return "shortned";
+    }
+    else{
+      return null;
+    }
 
   }
 }

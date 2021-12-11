@@ -1,3 +1,4 @@
+
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
@@ -14,6 +15,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
+import { IConfiguration } from './shared/iConfiguration';
+import { ConfigurationService } from './shared/configuration.service';
 
 @NgModule({
   declarations: [
@@ -34,7 +37,7 @@ import { MatInputModule } from '@angular/material/input';
     ]),
     HttpClientModule,
   ],
-  providers: [ShortnerService],
+  providers: [ConfigurationService, ShortnerService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

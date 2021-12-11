@@ -1,5 +1,7 @@
+import { ConfigurationService } from './configuration.service';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
 
 
 
@@ -8,11 +10,24 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 })
 export class ShortnerService {
 
-  constructor(private http: HttpClient) { }
+  constructor(private configuration:ConfigurationService, private http: HttpClient) { }
 
-  shorten(url: string) {
-
-    window.alert('The link will be shortened');
+  async shorten(url: string) : Promise<string> {
+    try{
+      var response = await lastValueFrom(
+        this.http.put(
+          `${this.configuration.apiUrl}/shorten`,
+          JSON.stringify({url:url})));
+          console.log("[ShortnerService]","has responded",response);
+      return "shortned url";
+    }
+    catch(error){
+      console.log("[ShortnerService]","has faulted");
+      throw error;
+    }
+    finally{
+      console.log("[ShortnerService]","has terminated");
+    }
   }
 
 
