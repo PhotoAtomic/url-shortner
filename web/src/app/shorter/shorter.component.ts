@@ -25,10 +25,10 @@ export class ShorterComponent {
 
   constructor(private shortner: ShortnerService) {}
 
-  async short(uriToShort:string|null):Promise<string|null> {
-    console.log("[SHORT]",uriToShort);
-    if(uriToShort !==null){
-      await this.shortner.shorten(uriToShort);
+  async short(urlToShort:string|null):Promise<string|null> {
+    console.log("[SHORT]",urlToShort);
+    if(urlToShort !==null){
+      await this.shortner.shorten(urlToShort);
       return "shortned";
     }
     else{

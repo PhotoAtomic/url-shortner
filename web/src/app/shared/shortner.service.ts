@@ -5,21 +5,32 @@ import { firstValueFrom, lastValueFrom } from 'rxjs';
 
 
 
+class Response{
+  shortUrl:string|null=null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ShortnerService {
 
-  constructor(private configuration:ConfigurationService, private http: HttpClient) { }
+  private options:any;
+
+  constructor(private configuration:ConfigurationService, private http: HttpClient) {
+    this.options = { headers: new HttpHeaders().set('Content-Type', 'application/json') };
+
+  }
 
   async shorten(url: string) : Promise<string> {
     try{
       var response = await lastValueFrom(
-        this.http.put(
-          `${this.configuration.apiUrl}/shorten`,
-          JSON.stringify({url:url})));
+        this.http.put<Response>(
+          `${this.configuration.apiUrl}/Shorten`,
+          JSON.stringify({url:url}),
+          this.options
+          ));
           console.log("[ShortnerService]","has responded",response);
-      return "shortned url";
+      return "some x";
     }
     catch(error){
       console.log("[ShortnerService]","has faulted");
