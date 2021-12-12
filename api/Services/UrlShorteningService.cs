@@ -1,6 +1,7 @@
 ﻿using api.Configurations;
 using api.Domain;
 using api.Persistence;
+using api.Utilities;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
 using Polly;
@@ -14,17 +15,20 @@ namespace api.Services
         readonly string sequenceName = "0";
         private readonly ulong chunkSize;
         private readonly AsyncRetryPolicy chunkRetrivalPolicy;
+        private readonly AsyncRetryPolicy urlSavePolicy;
         readonly IUnitOfWorkFactory database;
 
         public UrlShorteningService(IUnitOfWorkFactory database, IOptions <UrlShorteningServiceConfiguration> configOptions)
         {
             this.database = database;
-            this.sequenceName = configOptions.Value.SequenceName;
+            this.sequenceName = configOptions.Value.SequenceName.ToLower(); // sequence name, as they become part of the shortened url, are accepted only in lowercase otherwise the user have to input the correct case for the prefix
             this.chunkSize = configOptions.Value.ChunkSize;
 
             chunkRetrivalPolicy = Policy.Handle<ConcurrencyException>()
                 .WaitAndRetryAsync(retryCount: 10, sleepDurationProvider: (attemptCount) => TimeSpan.FromMilliseconds(attemptCount * 2));
-                
+
+            urlSavePolicy = Policy.Handle<ConcurrencyException>()
+                .WaitAndRetryAsync(retryCount: 2, sleepDurationProvider: (attemptCount) => TimeSpan.FromMilliseconds(attemptCount * 2));
 
         }
 
@@ -126,13 +130,39 @@ namespace api.Services
 
         public async Task<string> CreateShortSlugFor(string url)
         {
-            var id = await GetSequenceNextValue();
+            if (!IsValid(url)) throw new Exception($"the provided url is invalid");
 
+            var id = await GetSequenceNextValue(); // at this poit there should not be the risk that any other worker, nor any other thread in this worker have obtained the same id
 
+            var slug = UlongEncoding.ToSpecialBase16(id, sequenceName);
 
-            return id.ToString();
+            await StoreShortSlugForUrl(slug, url);
+
+            return slug;
+
         }
 
+        protected virtual bool IsValid(string url)
+        {
+            return true; // no assumptions here.... i will have checked that the URI brings to an existing page prior to generate a short uri but, maybe someone wants to shorten a intranet uri? or a malformed one for testing purposes? why not.
+        }
 
+        private Task StoreShortSlugForUrl(string slug, string url)
+        {
+            return chunkRetrivalPolicy.ExecuteAsync(async () =>
+            {
+                using (var uow = await database.NewUnitOfWork())
+                {
+                    var shortUrlRepository = await uow.RepositoryOf<ShortUrl>();
+                    ShortUrl shortUrl = new()
+                    {
+                        Id = slug,
+                        Url = url,
+                    };
+                    await shortUrlRepository.Add(shortUrl);
+                }
+            });
+        }
+         
     }
 }
