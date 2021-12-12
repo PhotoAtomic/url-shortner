@@ -16,6 +16,7 @@ namespace api.Services
         private readonly ulong chunkSize;
         private readonly AsyncRetryPolicy chunkRetrivalPolicy;
         private readonly AsyncRetryPolicy urlSavePolicy;
+        private readonly AsyncRetryPolicy urlRetrivalPolicy;
         readonly IUnitOfWorkFactory database;
 
         public UrlShorteningService(IUnitOfWorkFactory database, IOptions <UrlShorteningServiceConfiguration> configOptions)
@@ -30,9 +31,13 @@ namespace api.Services
             urlSavePolicy = Policy.Handle<ConcurrencyException>()
                 .WaitAndRetryAsync(retryCount: 2, sleepDurationProvider: (attemptCount) => TimeSpan.FromMilliseconds(attemptCount * 2));
 
+            urlRetrivalPolicy = Policy.Handle<ConcurrencyException>()
+                .WaitAndRetryAsync(retryCount: 2, sleepDurationProvider: (attemptCount) => TimeSpan.FromMilliseconds(attemptCount * 2));
+
         }
 
-        
+
+
         private ulong sequenceValue = 0;
         private ulong sequenceChunkLimit = 0;
 
@@ -149,7 +154,7 @@ namespace api.Services
 
         private Task StoreShortSlugForUrl(string slug, string url)
         {
-            return chunkRetrivalPolicy.ExecuteAsync(async () =>
+            return urlSavePolicy.ExecuteAsync(async () =>
             {
                 using (var uow = await database.NewUnitOfWork())
                 {
@@ -163,6 +168,21 @@ namespace api.Services
                 }
             });
         }
-         
+
+
+        public Task<String?> GetLongUrlForSlug(string slug)
+        {
+            return urlRetrivalPolicy.ExecuteAsync(async () =>
+            {
+                using (var uow = await database.NewUnitOfWork())
+                {
+                    var shortUrlRepository = await uow.RepositoryOf<ShortUrl>();
+                    
+                    var shortenedUrl = await shortUrlRepository.GetById(slug.ToLowerInvariant().Trim());
+
+                    return shortenedUrl?.Url;
+                }
+            });
+        }
     }
 }
