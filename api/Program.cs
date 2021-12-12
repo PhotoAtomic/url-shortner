@@ -1,6 +1,9 @@
 
 
 using api.Configurations;
+using api.Persistence;
+using api.Persistence.Cosmos;
+using api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +33,15 @@ builder.Services.AddCors(options =>
                       });
 });
 
+
+
+builder.Services.Configure<UrlShorteningServiceConfiguration>(builder.Configuration.GetSection(nameof(UrlShorteningServiceConfiguration)));
+builder.Services.Configure<PersistenceConfiguration>(builder.Configuration.GetSection(nameof(PersistenceConfiguration)));
+
+builder.Services.AddSingleton<IUnitOfWorkFactory, CosmosUnitOfWorkFactory>();
+builder.Services.AddSingleton<UrlShorteningService>();
+
+
 var app = builder.Build();
 
 app.UseCors();
@@ -43,7 +55,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-//app.UseAuthorization();
+app.UseAuthorization();
+
+
+
 
 app.MapControllers();
 
