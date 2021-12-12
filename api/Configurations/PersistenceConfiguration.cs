@@ -6,6 +6,6 @@
         public string Key { get; set; }
 
         public string DBName { get; set; }
-        public int Througput { get; set; } = 400;
+        public int? Througput { get; set; }
     }
 }

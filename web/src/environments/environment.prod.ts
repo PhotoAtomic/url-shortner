@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl:"https://someserveronazure.com/api"
+  apiUrl:"https://delta3shortner.azurewebsites.net.com/api"
 };

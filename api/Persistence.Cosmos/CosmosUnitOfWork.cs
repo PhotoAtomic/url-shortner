@@ -8,9 +8,9 @@ namespace api.Persistence.Cosmos
     public class CosmosUnitOfWork : IUnitOfWork
     {
         private Database database;
-        private readonly int througput;
+        private readonly int? througput;
 
-        public CosmosUnitOfWork(Database database, int througput = 400)
+        public CosmosUnitOfWork(Database database, int? througput = null)
         {
             this.database = database;
             this.througput = througput;
@@ -25,7 +25,7 @@ namespace api.Persistence.Cosmos
             Container container = await database.CreateContainerIfNotExistsAsync(
             typeof(T).Name,
             $"/{idName}",
-            400);
+            this.througput);
             return new CosmosRepository<T>(container, this);
 
         }
