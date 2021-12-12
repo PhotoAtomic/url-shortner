@@ -1,4 +1,5 @@
-﻿using api.Configurations;
+﻿using api.Cache;
+using api.Configurations;
 using api.Domain;
 using api.Persistence;
 using api.Utilities;
@@ -18,10 +19,12 @@ namespace api.Services
         private readonly AsyncRetryPolicy urlSavePolicy;
         private readonly AsyncRetryPolicy urlRetrivalPolicy;
         readonly IUnitOfWorkFactory database;
+        private readonly ShortUrlCache cache;
 
-        public UrlShorteningService(IUnitOfWorkFactory database, IOptions <UrlShorteningServiceConfiguration> configOptions)
+        public UrlShorteningService(IUnitOfWorkFactory database, ShortUrlCache cache, IOptions <UrlShorteningServiceConfiguration> configOptions)
         {
             this.database = database;
+            this.cache = cache;
             this.sequenceName = configOptions.Value.SequenceName.ToLower(); // sequence name, as they become part of the shortened url, are accepted only in lowercase otherwise the user have to input the correct case for the prefix
             this.chunkSize = configOptions.Value.ChunkSize;
 
@@ -147,10 +150,7 @@ namespace api.Services
 
         }
 
-        protected virtual bool IsValid(string url)
-        {
-            return true; // no assumptions here.... i will have checked that the URI brings to an existing page prior to generate a short uri but, maybe someone wants to shorten a intranet uri? or a malformed one for testing purposes? why not.
-        }
+
 
         private Task StoreShortSlugForUrl(string slug, string url)
         {
@@ -165,21 +165,29 @@ namespace api.Services
                         Url = url,
                     };
                     await shortUrlRepository.Add(shortUrl);
+                    cache.Store(shortUrl);
                 }
             });
         }
 
+        protected virtual bool IsValid(string url)
+        {
+            return true; // no assumptions here.... i will have checked that the URI brings to an existing page prior to generate a short uri but, maybe someone wants to shorten a intranet uri? or a malformed one for testing purposes? why not.
+        }
 
         public Task<String?> GetLongUrlForSlug(string slug)
         {
             return urlRetrivalPolicy.ExecuteAsync(async () =>
             {
+                var fromCache = cache.Get(slug);
+                if (fromCache is not null) return fromCache.Url;
+
                 using (var uow = await database.NewUnitOfWork())
                 {
                     var shortUrlRepository = await uow.RepositoryOf<ShortUrl>();
                     
                     var shortenedUrl = await shortUrlRepository.GetById(slug.ToLowerInvariant().Trim());
-
+                    cache.Store(shortenedUrl);
                     return shortenedUrl?.Url;
                 }
             });

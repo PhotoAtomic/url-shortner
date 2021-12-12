@@ -1,9 +1,11 @@
 
 
+using api.Cache;
 using api.Configurations;
 using api.Persistence;
 using api.Persistence.Cosmos;
 using api.Services;
+using Microsoft.Extensions.Caching.Memory;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,9 +39,14 @@ builder.Services.AddCors(options =>
 
 builder.Services.Configure<UrlShorteningServiceConfiguration>(builder.Configuration.GetSection(nameof(UrlShorteningServiceConfiguration)));
 builder.Services.Configure<PersistenceConfiguration>(builder.Configuration.GetSection(nameof(PersistenceConfiguration)));
+builder.Services.Configure<MemoryCacheOptions>(builder.Configuration.GetSection(nameof(MemoryCacheOptions)));
 
 builder.Services.AddSingleton<IUnitOfWorkFactory, CosmosUnitOfWorkFactory>();
 builder.Services.AddSingleton<UrlShorteningService>();
+
+builder.Services.AddSingleton<ShortUrlCache>();
+
+
 
 
 var app = builder.Build();

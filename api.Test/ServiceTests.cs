@@ -11,6 +11,7 @@ using api.Configurations;
 using Microsoft.Extensions.Options;
 using SharpTestsEx;
 using api.Domain;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace api.Test
 {
@@ -43,7 +44,7 @@ namespace api.Test
             factoryMock.Setup(x => x.NewUnitOfWork()).ReturnsAsync(uowMock.Object);
             var db = factoryMock.Object;
 
-            UrlShorteningService service = new(db, options);
+            UrlShorteningService service = new(db, new Cache.ShortUrlCache(new MemoryCacheOptions()), options);
 
             var next = await service.GetSequenceNextValue();
 
@@ -78,7 +79,7 @@ namespace api.Test
             };
 
             var repositoryMock = new Mock<IRepository<Sequence>>();
-            repositoryMock.Setup(x => x.GetById(config.SequenceName)).ReturnsAsync(storedSequence);
+            repositoryMock.Setup(x => x.GetById(It.IsAny<string>())).ReturnsAsync(storedSequence);
             repositoryMock.Setup(x => x.Add(storedSequence)).Verifiable();
 
             var uowMock = new Mock<IUnitOfWork>();
@@ -89,7 +90,7 @@ namespace api.Test
             factoryMock.Setup(x => x.NewUnitOfWork()).ReturnsAsync(uowMock.Object);
             var db = factoryMock.Object;
 
-            UrlShorteningService service = new(db, options);
+            UrlShorteningService service = new(db, new Cache.ShortUrlCache(new MemoryCacheOptions()), options);
 
             var next = await service.GetSequenceNextValue();
 
@@ -121,7 +122,7 @@ namespace api.Test
             };
 
             var repositoryMock = new Mock<IRepository<Sequence>>();
-            repositoryMock.Setup(x => x.GetById(config.SequenceName)).ReturnsAsync(storedSequence);
+            repositoryMock.Setup(x => x.GetById(It.IsAny<string>())).ReturnsAsync(storedSequence);
             repositoryMock.Setup(x => x.Add(storedSequence)).Callback<Sequence>(s=> storedSequence = s);
 
             var uowMock = new Mock<IUnitOfWork>();
@@ -132,7 +133,7 @@ namespace api.Test
             factoryMock.Setup(x => x.NewUnitOfWork()).ReturnsAsync(uowMock.Object);
             var db = factoryMock.Object;
 
-            UrlShorteningService service = new(db, options);
+            UrlShorteningService service = new(db, null, options);
 
             var next = await service.GetSequenceNextValue();
             next.Should().Be(4);
