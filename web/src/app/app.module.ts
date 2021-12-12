@@ -14,6 +14,8 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule} from '@angular/material/progress-spinner'
+
 
 import { IConfiguration } from './shared/iConfiguration';
 import { ConfigurationService } from './shared/configuration.service';
@@ -31,6 +33,7 @@ import { ConfigurationService } from './shared/configuration.service';
     MatFormFieldModule,
     MatInputModule,
     MatSliderModule,
+    MatProgressSpinnerModule,
 
     RouterModule.forRoot([
       { path: '', component: ShorterComponent },

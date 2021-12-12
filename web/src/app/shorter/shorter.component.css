@@ -1,0 +1,42 @@
+span.horizontal {
+  display:inline-block;
+  margin-left:0.5em;
+}
+
+.text{
+  color:whitesmoke;
+}
+
+button{
+  margin:1em;
+
+}
+
+.mat-input-element{
+  color:whitesmoke;
+}
+
+h1{
+  color:whitesmoke;
+  padding:1em;
+}
+
+
+a{
+  color:rgb(194, 24, 91);
+}
+
+.placeholder{
+  width:0.5em;
+  margin-right: 0.2em;
+}
+
+.container{
+  display:flex;
+  flex-direction: column;
+  padding-top:1em;
+}
+.container>*{
+  margin:auto;
+  display:flexbox;
+}

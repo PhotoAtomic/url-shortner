@@ -6,6 +6,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSpinner} from '@angular/material/progress-spinner'
 
 
 import { HttpClient, HttpHeaders } from '@angular/common/http'
@@ -23,17 +24,26 @@ import { HttpClient, HttpHeaders } from '@angular/common/http'
 export class ShorterComponent {
 
   public executions:UrlPair[]=[];
+  public executing:boolean = false;
 
   constructor(private shortner: ShortnerService) {}
 
   async short(urlToShort:string|null) {
     console.log("[SHORT]",urlToShort);
-    if(urlToShort !==null){
+    if(this.executing) return;
+    this.executing = true;
+    if(urlToShort !==null ){
+      if(urlToShort.trim()=="") {
+        this.executing = false;
+        return;
+      }
       let shortenedUrl = await this.shortner.shorten(urlToShort);
       this.executions.push(new UrlPair(urlToShort,shortenedUrl))
+      this.executing = false;
       return;
     }
     else{
+      this.executing = false;
       return;
     }
 

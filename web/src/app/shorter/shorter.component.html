@@ -1,14 +1,21 @@
 
+<div class="container">
+  <h1>Makes Url short, like bit.ly but without tracking</h1>
+  <div>
+    <mat-form-field class="example-full-width" appearance="fill">
+      <mat-label>Url to shorten</mat-label>
+      <input matInput placeholder="https://" #userInput >
+    </mat-form-field>
 
-<mat-form-field class="example-full-width" appearance="fill">
-  <mat-label>Url to shorten</mat-label>
-  <input matInput placeholder="https://" #userInput >
-</mat-form-field>
+    <button mat-raised-button color="primary" (click)="short(userInput.value)" [disabled]="executing">
+      <span class="horizontal">shrink</span>
+      <span class="horizontal placeholder"><mat-spinner *ngIf="executing" diameter="20"></mat-spinner></span>
+    </button>
+  </div>
 
-<button mat-button color="primary" (click)="short(userInput.value)">Short</button>
-
-<div *ngFor="let execution of executions">
-  <span><a href="{{execution.longUrl}}">{{execution.longUrl}}</a></span>
-  <span> is accessible via </span>
-  <span><a href="{{execution.shortUrl}}">{{execution.shortUrl}}</a></span>
+  <div *ngFor="let execution of executions">
+    <span><a href="{{execution.longUrl}}">{{execution.longUrl}}</a></span>
+    <span class="text"> is accessible via </span>
+    <span><a href="{{execution.shortUrl}}">{{execution.shortUrl}}</a></span>
+  </div>
 </div>
