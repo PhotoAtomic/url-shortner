@@ -34,7 +34,7 @@ namespace api.Test
 
             var repositoryMock = new Mock<IRepository<Sequence>>();
             repositoryMock.Setup(x => x.GetById(config.SequenceName)).ReturnsAsync((Sequence?)null);
-            repositoryMock.Setup(x => x.Add(It.IsAny<Sequence>())).Verifiable();
+            repositoryMock.Setup(x => x.Add(It.IsAny<Sequence>(),false)).Verifiable();
 
             var uowMock = new Mock<IUnitOfWork>();
             uowMock.Setup(x => x.RepositoryOf<Sequence>()).ReturnsAsync(repositoryMock.Object);
@@ -80,7 +80,7 @@ namespace api.Test
 
             var repositoryMock = new Mock<IRepository<Sequence>>();
             repositoryMock.Setup(x => x.GetById(It.IsAny<string>())).ReturnsAsync(storedSequence);
-            repositoryMock.Setup(x => x.Add(storedSequence)).Verifiable();
+            repositoryMock.Setup(x => x.Add(storedSequence,false)).Verifiable();
 
             var uowMock = new Mock<IUnitOfWork>();
             uowMock.Setup(x => x.RepositoryOf<Sequence>()).ReturnsAsync(repositoryMock.Object);
@@ -123,7 +123,7 @@ namespace api.Test
 
             var repositoryMock = new Mock<IRepository<Sequence>>();
             repositoryMock.Setup(x => x.GetById(It.IsAny<string>())).ReturnsAsync(storedSequence);
-            repositoryMock.Setup(x => x.Add(storedSequence)).Callback<Sequence>(s=> storedSequence = s);
+            repositoryMock.Setup(x => x.Add(storedSequence,false)).Callback<Sequence,bool>((s,b)=> storedSequence = s);
 
             var uowMock = new Mock<IUnitOfWork>();
             uowMock.Setup(x => x.RepositoryOf<Sequence>()).ReturnsAsync(repositoryMock.Object);

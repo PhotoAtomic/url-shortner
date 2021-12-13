@@ -16,7 +16,7 @@ namespace api.Persistence.Cosmos
             idPartitionKey = new PartitionKey(nameof(IIdentifiable.Id));
         }
 
-        public async Task Add(T item)
+        public async Task Add(T item, bool mustNotExists = false)
         {
 
             if (item is null) throw new ArgumentNullException(nameof(item));
@@ -24,12 +24,21 @@ namespace api.Persistence.Cosmos
             ItemRequestOptions? requestOptions = null;
 
             if (uow.TryGetEtag(item,out var eTag)) {
-                requestOptions  = new ItemRequestOptions { IfMatchEtag = eTag };
+                requestOptions  = new ItemRequestOptions { IfMatchEtag = eTag };                
             }
 
             try
             {
-                var response = await container.UpsertItemAsync<T>(item, GetPartitionKeyForItem(item), requestOptions: requestOptions);
+                ItemResponse<T> response;
+                if (mustNotExists)
+                {
+                    response = await container.CreateItemAsync<T>(item, GetPartitionKeyForItem(item));
+                }
+                else
+                {
+                    response = await container.UpsertItemAsync<T>(item, GetPartitionKeyForItem(item), requestOptions: requestOptions);
+                }
+
                 if(response.StatusCode == HttpStatusCode.Created)
                 {
                     uow.TrackETag(item, response.ETag);
@@ -38,6 +47,10 @@ namespace api.Persistence.Cosmos
             catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.PreconditionFailed)
             {
                 throw new ConcurrencyException($"Updating item with id {item.Id} failed because of a concurrent update");
+            }
+            catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+            {
+                throw new ConcurrencyException($"Creating item with id {item.Id} failed because already exists");
             }
 
         }

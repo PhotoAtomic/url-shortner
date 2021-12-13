@@ -169,5 +169,39 @@ namespace api.Test
 
 
         }
+
+        [TestMethod]
+        public async Task CreatingTwoItemsWithTheSameId_Expected_SecondFailsWithException()
+        {
+
+            using (var uow = await factory!.NewUnitOfWork())
+            {
+                var repo = await uow.RepositoryOf<ExampleDocument>();
+
+                var newId = Guid.NewGuid().ToString();
+
+                ExampleDocument doc1 = new()
+                {
+                    Id = newId,
+                    Value = "An example value",
+                };
+
+                await repo.Add(doc1,mustNotExists:true);
+
+                ExampleDocument doc2 = new()
+                {
+                    Id = newId,
+                    Value = "Another value",
+                };
+
+                try
+                {
+                    await repo.Add(doc1, mustNotExists: true);
+                    throw new Exception("If code executed untill here, then the expected exception has not be throw");
+                }
+                catch (ConcurrencyException ex) { } // catch expected exception, 
+
+            }
+        }
     }
 }

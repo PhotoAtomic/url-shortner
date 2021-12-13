@@ -164,7 +164,7 @@ namespace api.Services
                         Id = slug,
                         Url = url,
                     };
-                    await shortUrlRepository.Add(shortUrl);
+                    await shortUrlRepository.Add(shortUrl,mustNotExists: true);
                     cache.Store(shortUrl);
                 }
             });

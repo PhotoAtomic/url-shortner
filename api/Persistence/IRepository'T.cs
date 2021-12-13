@@ -6,7 +6,7 @@
 
         Task RemoveById(string id);
 
-        Task Add(T item);
+        Task Add(T item, bool mustNotExists = false);
 
         
     }
